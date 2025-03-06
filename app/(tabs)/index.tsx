@@ -1,74 +1,135 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import {StyleSheet, View, Text, Platform, Image, Button, TextInput, ScrollView} from 'react-native';
+import DateTimePicker, { DateType, getDefaultStyles } from 'react-native-ui-datepicker';
+import {useState} from "react";
 
 export default function HomeScreen() {
+  const [nameNumber, setNameNumber] = useState<number>(0)
+  const [birthdayNumber, setBirthdayNumber] = useState<number>(0)
+  const [luckyNumber, setLuckyNumber] = useState<number>(0)
+
+  const [name, setName] = useState<string>("")
+  const [fatherName, setFatherName] = useState<string>("")
+  const [selected, setSelected] = useState<DateType>();
+
+  const fetchData = async () => {
+    try {
+      console.log(name)
+      console.log(fatherName)
+      console.log(selected)
+      await fetch('http://192.168.0.233:5000/calculate/luckynumbers', {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({name, fatherName, selected})
+      });
+    } catch (error) {
+      console.error(error)
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <ScrollView style={{ backgroundColor: "white", paddingHorizontal: 20, paddingVertical: 40}}>
+      <Text style={styles.title}>Luck calculator</Text>
+      <View style={styles.inputFields}>
+        <TextInput
+          style={styles.input}
+          placeholder="Write your full name"
+          value={name}
+          onChangeText={setName}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      </View>
+      <View style={styles.inputFields}>
+        <TextInput
+          style={styles.input}
+          placeholder="Write your father's name"
+          value={fatherName}
+          onChangeText={setFatherName}
+        />
+      </View>
+      <DateTimePicker
+        mode="single"
+        date={selected}
+        hideHeader={false}
+        navigationPosition={"right"}
+        containerHeight={300}
+        onChange={({ date }) =>  setSelected(date)}
+        style={{
+          marginTop: 20,
+          padding: 15,
+          borderRadius: 10,
+          borderColor: "black",
+          backgroundColor: "gray"
+        }}
+        styles={{
+          today: {backgroundColor: "black"},
+          today_label: {color: "white"},
+          weekdays: {backgroundColor: "white", borderRadius: 5},
+          selected: {backgroundColor: "white"},
+          selected_label: {color: "black"}
+        }}
+      />
+      <View style={styles.mainBtn}>
+        <Button title={"CALCULATE"} onPress={fetchData} />
+      </View>
+      <View style={styles.infoFlex}>
+        <View style={styles.box}>
+          <Text style={styles.boxTitle}>Name Number</Text>
+          <Text style={styles.boxTitle}>{nameNumber}</Text>
+        </View>
+        <View style={styles.box}>
+          <Text style={styles.boxTitle}>Birthday Number</Text>
+          <Text style={styles.boxTitle}>{birthdayNumber}</Text>
+        </View>
+        <View style={styles.box}>
+          <Text style={styles.boxTitle}>Lucky Number</Text>
+          <Text style={styles.boxTitle}>{luckyNumber}</Text>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  datePicker: {
+
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: {
+    fontSize: 30,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  input: {
+    width: 200,
+    height: 40,
+    borderWidth: 1,
+    borderColor: "gray",
+    borderRadius: 5,
+    paddingHorizontal: 10,
   },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+  },
+  mainBtn: {
+    paddingVertical: 30,
+    width: "50%"
+  },
+  infoFlex: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    gap: 10,
+  },
+  box: {
+    width: 100,
+    height: 100,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  boxTitle: {
+    fontWeight: 800,
+    fontSize: 22,
+    textAlign: "center"
+  },
+  inputFields: {
+    marginTop: 10,
+  }
 });
