@@ -43,7 +43,7 @@ export default function HomeScreen() {
       showsVerticalScrollIndicator={true}
       refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       style={globalStyles.container}>
-      <Text style={{textDecorationLine: "underline", fontSize: 20, color: "green"}}>Tell us about yourself</Text>
+      <Text style={{fontSize: 20, textTransform: "uppercase", fontWeight: 800}}>Tell us about yourself</Text>
       <View style={styles.inputFields}>
         <TextInput
           style={styles.input}
