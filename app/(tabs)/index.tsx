@@ -1,6 +1,9 @@
-import {StyleSheet, View, Text, Platform, Image, Button, TextInput, ScrollView} from 'react-native';
+import {StyleSheet, View, Text, Platform, Image, Button, TextInput, ScrollView, RefreshControl} from 'react-native';
 import DateTimePicker, { DateType, getDefaultStyles } from 'react-native-ui-datepicker';
 import {useState} from "react";
+import {globalStyles} from "@/app/globalStyle";
+import day from "react-native-ui-datepicker/src/components/day";
+import Calendar from "react-native-ui-datepicker/lib/typescript/components/calendar";
 
 export default function HomeScreen() {
   const [nameNumber, setNameNumber] = useState<number>(0)
@@ -11,24 +14,36 @@ export default function HomeScreen() {
   const [fatherName, setFatherName] = useState<string>("")
   const [selected, setSelected] = useState<DateType>();
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const onRefresh = () => {
+    setIsRefreshing(true);
+
+    setTimeout(() => setIsRefreshing(false), 500); // Example delay to simulate reloading
+  };
+
   const fetchData = async () => {
     try {
-      console.log(name)
-      console.log(fatherName)
-      console.log(selected)
-      await fetch('http://192.168.0.233:5000/calculate/luckynumbers', {
+      const response = await fetch('http://192.168.0.233:5000/calculate/luckynumbers', {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({name, fatherName, selected})
       });
+      response.json().then(({luckybirthdaynumber, luckynamenumber, luckynumber}) => {
+        setLuckyNumber(luckynumber)
+        setNameNumber(luckynamenumber)
+        setBirthdayNumber(luckybirthdaynumber)
+      })
     } catch (error) {
       console.error(error)
     }
   };
 
   return (
-    <ScrollView style={{ backgroundColor: "white", paddingHorizontal: 20, paddingVertical: 40}}>
-      <Text style={styles.title}>Luck calculator</Text>
+    <ScrollView
+      showsVerticalScrollIndicator={true}
+      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+      style={globalStyles.container}>
+      <Text style={{textDecorationLine: "underline", fontSize: 20, color: "green"}}>Tell us about yourself</Text>
       <View style={styles.inputFields}>
         <TextInput
           style={styles.input}
@@ -51,23 +66,27 @@ export default function HomeScreen() {
         hideHeader={false}
         navigationPosition={"right"}
         containerHeight={300}
-        onChange={({ date }) =>  setSelected(date)}
+        onChange={({ date }) => setSelected(date)}
+        components={{
+          IconNext: <Text style={{color: "black", fontWeight: 800}}>NEXT</Text>,
+          IconPrev: <Text style={{color: "black", fontWeight: 800}}>PREV</Text>,
+        }}
         style={{
-          marginTop: 20,
-          padding: 15,
-          borderRadius: 10,
-          borderColor: "black",
-          backgroundColor: "gray"
+
         }}
         styles={{
-          today: {backgroundColor: "black"},
-          today_label: {color: "white"},
-          weekdays: {backgroundColor: "white", borderRadius: 5},
-          selected: {backgroundColor: "white"},
-          selected_label: {color: "black"}
+          day_label: {fontWeight: 600},
+          selected_label: {color: "white"},
+          selected: {backgroundColor: "black"},
+          selected_month: { backgroundColor: "black" },
+          month_label: {color: "black"},
+          selected_month_label: {color: "white"},
+          selected_year: {backgroundColor: "black"},
+          selected_year_label: {color: "white"},
+          today: {backgroundColor: "darkgray"}
         }}
       />
-      <View style={styles.mainBtn}>
+      <View style={styles.ButtonWrapper}>
         <Button title={"CALCULATE"} onPress={fetchData} />
       </View>
       <View style={styles.infoFlex}>
@@ -89,29 +108,9 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  datePicker: {
-
-  },
-  title: {
-    fontSize: 30,
-  },
-  input: {
-    width: 200,
-    height: 40,
-    borderWidth: 1,
-    borderColor: "gray",
-    borderRadius: 5,
-    paddingHorizontal: 10,
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "white",
-  },
-  mainBtn: {
+  ButtonWrapper: {
     paddingVertical: 30,
-    width: "50%"
+    width: "100%",
   },
   infoFlex: {
     flexDirection: "row",
@@ -131,5 +130,12 @@ const styles = StyleSheet.create({
   },
   inputFields: {
     marginTop: 10,
-  }
+    width: "100%",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "gray",
+    borderRadius: 5,
+    paddingHorizontal: 10,
+  },
 });
