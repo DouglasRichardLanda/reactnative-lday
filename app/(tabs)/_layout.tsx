@@ -1,47 +1,73 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { Button, Text, TouchableOpacity } from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { FontAwesome5 } from '@expo/vector-icons'; // Import icons
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+export default function TabsLayout() {
+    const router = useRouter();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+    const handleSignOut = async () => {
+        await AsyncStorage.removeItem('userToken');
+        router.replace('/auth'); // Redirect to auth screen
+    };
 
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: true,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          headerTitle: 'Lucky numbers calculator', // Keeps the title in the header
-          tabBarLabel: "",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          headerTitle: 'How is your day', // Keeps the title in the header
-          tabBarLabel: '',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
-  );
+    return (
+        <Tabs screenOptions={({ route }) => ({
+            tabBarIcon: ({ color, size }) => {
+                let iconName;
+
+                if (route.name === 'profile') {
+                    iconName = 'user';
+                } else if (route.name === 'calendar') {
+                    iconName = 'calendar-alt';
+                }
+
+                return <FontAwesome5 name={iconName} size={size} color={color} />;
+            },
+            tabBarActiveTintColor: 'black',
+            tabBarInactiveTintColor: 'gray',
+            tabBarStyle: { backgroundColor: '#fff' },
+        })}>
+            <Tabs.Screen
+                name="profile"
+                options={{
+                    title: "Profile",
+                    headerRight: () => (
+                        <TouchableOpacity
+                            onPress={handleSignOut}
+                            style={{
+                                backgroundColor: 'black',
+                                paddingVertical: 8,
+                                paddingHorizontal: 16,
+                                borderRadius: 5,
+                                marginRight: 10
+                            }}
+                        >
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Sign Out</Text>
+                        </TouchableOpacity>
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="calendar"
+                options={{
+                    title: "Calendar",
+                    headerRight: () => (
+                        <TouchableOpacity
+                            onPress={handleSignOut}
+                            style={{
+                                backgroundColor: 'black',
+                                paddingVertical: 8,
+                                paddingHorizontal: 16,
+                                borderRadius: 5,
+                                marginRight: 10
+                            }}
+                        >
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Sign Out</Text>
+                        </TouchableOpacity>
+                    ),
+                }}
+            />
+        </Tabs>
+    );
 }
